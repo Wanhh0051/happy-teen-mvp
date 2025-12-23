@@ -20,11 +20,11 @@ def load_content():
     except:
         return []
 
-def handler(request):
-    """主处理函数"""
-    # 获取请求路径和方法
-    path = request.path
-    method = request.method.upper()
+def handler(event):
+    """Lambda-style handler for Vercel"""
+    # Vercel传递event参数，包含path和method等
+    path = event.get('path', '/')
+    method = event.get('method', 'GET')
 
     # 只处理GET请求
     if method != 'GET':
@@ -38,14 +38,24 @@ def handler(request):
 
     # 主页路由 - 返回HTML
     if path == '/' or path == '/index':
-        with open(Path(__file__).parent.parent / 'public' / 'index.html', 'r', encoding='utf-8') as f:
-            html_content = f.read()
+        try:
+            with open(Path(__file__).parent.parent / 'public' / 'index.html', 'r', encoding='utf-8') as f:
+                html_content = f.read()
 
-        return {
-            'statusCode': 200,
-            'headers': {'Content-Type': 'text/html; charset=utf-8'},
-            'body': html_content
-        }
+            return {
+                'statusCode': 200,
+                'headers': {
+                    'Content-Type': 'text/html; charset=utf-8',
+                    'Cache-Control': 'public, max-age=3600'
+                },
+                'body': html_content
+            }
+        except Exception as e:
+            return {
+                'statusCode': 500,
+                'headers': {'Content-Type': 'application/json'},
+                'body': json.dumps({'success': False, 'error': str(e)})
+            }
 
     # API路由
     if path == '/api/content' or path == '/api/':
@@ -95,9 +105,9 @@ def handler(request):
                 'body': json.dumps({'success': False, 'message': '暂无内容'}, ensure_ascii=False)
             }
 
-    # 默认返回
+    # 默认返回404
     return {
         'statusCode': 404,
         'headers': {'Content-Type': 'application/json'},
-        'body': json.dumps({'success': False, 'message': 'Not found'})
+        'body': json.dumps({'success': False, 'message': 'Not found', 'path': path})
     }

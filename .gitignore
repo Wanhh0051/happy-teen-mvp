@@ -11,3 +11,4 @@ instance/
 # 排除原始数据，但保留审核通过的内容
 data/content.json
 data/review_queue.json
+.vercel

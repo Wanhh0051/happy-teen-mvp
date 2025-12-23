@@ -36,6 +36,17 @@ def handler(request):
 
     contents = load_content()
 
+    # 主页路由 - 返回HTML
+    if path == '/' or path == '/index':
+        with open(Path(__file__).parent.parent / 'public' / 'index.html', 'r', encoding='utf-8') as f:
+            html_content = f.read()
+
+        return {
+            'statusCode': 200,
+            'headers': {'Content-Type': 'text/html; charset=utf-8'},
+            'body': html_content
+        }
+
     # API路由
     if path == '/api/content' or path == '/api/':
         # 获取10条随机内容
